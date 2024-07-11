@@ -1,4 +1,3 @@
-
 version: '3.1'
 
 services:
@@ -13,6 +12,31 @@ services:
       - "5432:5432"
     volumes:
       - postgres_data:/var/lib/postgresql/data
+
+  init_db:
+    image: postgres:12.7
+    depends_on:
+      - db
+    environment:
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: password
+      POSTGRES_DB: temperatures
+    volumes:
+      - ./scripts:/scripts
+    entrypoint: ["/bin/bash", "/scripts/init_db.sh"]
+
+  app:
+    build: .
+    depends_on:
+      - db
+    environment:
+      DB_HOST: db
+      DB_NAME: temperatures
+      DB_USER: postgres
+      DB_PASS: password
+      DATA_FILE: "/app/data/globalLandTemperaturesByCountry.csv"
+    volumes:
+      - ./data:/app/data
 
 volumes:
   postgres_data:
